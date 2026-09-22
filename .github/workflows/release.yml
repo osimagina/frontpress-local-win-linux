@@ -1,7 +1,8 @@
 name: Release
 
-# Builds FrontPress Local for macOS, signs the auto-updater artifacts, and
-# publishes a GitHub Release + `latest.json` that the app's updater reads.
+# Builds FrontPress Local for Windows + Linux, signs the auto-updater
+# artifacts, and publishes a GitHub Release + `latest.json` that the app's
+# updater reads.
 #
 # Trigger by pushing a version tag, e.g.:
 #   git tag v0.2.0 && git push origin v0.2.0
@@ -12,16 +13,6 @@ name: Release
 # Updater signing (REQUIRED now — without these the app can't verify updates):
 #   TAURI_SIGNING_PRIVATE_KEY           contents of ~/.tauri/frontpress-local.key
 #   TAURI_SIGNING_PRIVATE_KEY_PASSWORD  the key's password (empty string if none)
-#
-# Apple code signing + notarization (REQUIRED before public distribution —
-# leave unset for now; the build still produces an UNSIGNED app you can test
-# locally, but Gatekeeper will block it on other Macs until these are set):
-#   APPLE_CERTIFICATE          base64 of your Developer ID .p12
-#   APPLE_CERTIFICATE_PASSWORD password for that .p12
-#   APPLE_SIGNING_IDENTITY     e.g. "Developer ID Application: Marko Krstić (TEAMID)"
-#   APPLE_ID                   your Apple ID email
-#   APPLE_PASSWORD             an app-specific password for notarization
-#   APPLE_TEAM_ID              your 10-char Apple Team ID
 
 on:
   push:
@@ -36,17 +27,32 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-latest
-            rust-targets: aarch64-apple-darwin,x86_64-apple-darwin
-            args: "--target universal-apple-darwin"
-          # Windows is wired up but deferred for now (untested on a real
-          # Windows machine). Uncomment to ship the .exe/.msi alongside macOS:
-          # - os: windows-latest
-          #   rust-targets: ""
-          #   args: ""
+          # Windows x64 — NSIS .exe (+ updater artifacts).
+          - os: windows-latest
+            rust-targets: ""
+            args: ""
+          # Linux x64 — AppImage + .deb (+ updater artifacts).
+          - os: ubuntu-22.04
+            rust-targets: ""
+            args: ""
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libssl-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -71,16 +77,8 @@ jobs:
           # Updater signing (verifies the update payload):
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          # Apple signing + notarization — uncomment once enrolled and the
-          # secrets above are set. Until then the build is unsigned.
-          # APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          # APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          # APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          # APPLE_ID: ${{ secrets.APPLE_ID }}
-          # APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
-          # macOS: universal (Apple Silicon + Intel). Windows: default x64.
+          # Windows: default x64 NSIS. Linux: default x64 AppImage + deb.
           # tauri-action merges each platform into the same release + latest.json.
           args: ${{ matrix.args }}
           tagName: ${{ github.ref_name }}

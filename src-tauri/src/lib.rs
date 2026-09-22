@@ -10,7 +10,7 @@ mod store;
 mod util;
 
 use commands::AppState;
-use tauri::menu::{AboutMetadata, Menu, MenuItem, PredefinedMenuItem, Submenu};
+use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::{Emitter, Manager};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -22,30 +22,17 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .manage(AppState::load())
         .menu(|handle| {
-            // Native macOS menu. We replace the default so we can add
-            // "Check for Updates…" under About — but keep the standard Edit
-            // and Window submenus so text-field shortcuts (copy/paste/etc.)
-            // and window controls keep working.
+            // Cross-platform menu (Windows + Linux): File > Quit and
+            // Help > Check for Updates… (emits "menu:check-updates" which the
+            // frontend updater hook listens for). Edit keeps copy/paste
+            // shortcuts working in text fields.
             let check =
                 MenuItem::with_id(handle, "check-updates", "Check for Updates…", true, None::<&str>)?;
-            let app_menu = Submenu::with_items(
+            let file_menu = Submenu::with_items(
                 handle,
-                "FrontPress Local",
+                "File",
                 true,
-                &[
-                    &PredefinedMenuItem::about(
-                        handle,
-                        Some("About FrontPress Local"),
-                        Some(AboutMetadata::default()),
-                    )?,
-                    &check,
-                    &PredefinedMenuItem::separator(handle)?,
-                    &PredefinedMenuItem::hide(handle, None)?,
-                    &PredefinedMenuItem::hide_others(handle, None)?,
-                    &PredefinedMenuItem::show_all(handle, None)?,
-                    &PredefinedMenuItem::separator(handle)?,
-                    &PredefinedMenuItem::quit(handle, None)?,
-                ],
+                &[&PredefinedMenuItem::quit(handle, None)?],
             )?;
             let edit_menu = Submenu::with_items(
                 handle,
@@ -61,17 +48,8 @@ pub fn run() {
                     &PredefinedMenuItem::select_all(handle, None)?,
                 ],
             )?;
-            let window_menu = Submenu::with_items(
-                handle,
-                "Window",
-                true,
-                &[
-                    &PredefinedMenuItem::minimize(handle, None)?,
-                    &PredefinedMenuItem::separator(handle)?,
-                    &PredefinedMenuItem::close_window(handle, None)?,
-                ],
-            )?;
-            Menu::with_items(handle, &[&app_menu, &edit_menu, &window_menu])
+            let help_menu = Submenu::with_items(handle, "Help", true, &[&check])?;
+            Menu::with_items(handle, &[&file_menu, &edit_menu, &help_menu])
         })
         .on_menu_event(|app, event| {
             if event.id() == "check-updates" {

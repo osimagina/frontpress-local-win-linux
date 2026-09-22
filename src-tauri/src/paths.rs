@@ -1,14 +1,15 @@
-//! Filesystem locations FrontPress Local owns.
+//! Filesystem locations FrontPress Local owns (Windows + Linux only).
 //!
-//! - App data:   ~/Library/Application Support/FrontPress Local/
+//! - App data:   %APPDATA%/FrontPress Local/ (Windows)
+//!               ~/.local/share/FrontPress Local/ (Linux)
 //!     - sites.json          single source of truth for sites + settings
-//!     - php/<version>/php    downloaded static PHP runtimes
+//!     - php/<version>/php(.exe)  downloaded PHP runtimes
 //! - Sites:      ~/FrontPress Sites/<name>/   the extracted FrontPress installs
 
 use anyhow::{anyhow, Result};
 use std::path::PathBuf;
 
-/// `~/Library/Application Support/FrontPress Local` (created if missing).
+/// Platform app-data dir joined with "FrontPress Local" (created if missing).
 pub fn app_data_dir() -> Result<PathBuf> {
     let base = dirs::data_dir().ok_or_else(|| anyhow!("no platform data dir"))?;
     let dir = base.join("FrontPress Local");
@@ -16,7 +17,7 @@ pub fn app_data_dir() -> Result<PathBuf> {
     Ok(dir)
 }
 
-/// `~/Library/Application Support/FrontPress Local/sites.json`.
+/// App-data `sites.json`.
 pub fn store_file() -> Result<PathBuf> {
     Ok(app_data_dir()?.join("sites.json"))
 }

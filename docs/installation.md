@@ -1,55 +1,24 @@
 # Installation
 
-FrontPress Local is a native macOS app. (Windows support is wired up but not shipped yet.)
+FrontPress Local is a native app for **Windows and Linux** (Tauri + Rust).
 
 ## 1. Download
 
-<img width="3834" height="1742" alt="Screenshot 2026-06-05 at 11 48 26" src="https://github.com/user-attachments/assets/d499ebd3-d614-48f1-ad0e-df6da2293239" />
+Open the **[Releases page](https://github.com/krstivoja/frontpress-local/releases/latest)** and download the asset for your OS:
 
+- **Windows 10/11 x64:** `FrontPress-Local_<version>_x64-setup.exe` (NSIS installer, per-user). Run it and follow the wizard. Requires **WebView2** (preinstalled on Windows 11; on Windows 10 install [WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) first if prompted).
+- **Linux x64 (Ubuntu/Debian):** `FrontPress-Local_<version>_amd64.AppImage` (make executable and run) or `frontpress-local_<version>_amd64.deb` (`sudo dpkg -i …`). Requires **WebKitGTK** (`libwebkit2gtk-4.1`) — on Ubuntu: `sudo apt install libwebkit2gtk-4.1-0`.
 
-<img width="3820" height="1748" alt="Screenshot 2026-06-05 at 11 48 53" src="https://github.com/user-attachments/assets/f6f4ed18-3bdc-4ded-a219-f91be17e8d40" />
+> Prefer the terminal on Linux? `chmod +x FrontPress-Local_*.AppImage && ./FrontPress-Local_*.AppImage`
 
+## 2. Updates
 
-Open the **[Releases page](https://github.com/krstivoja/frontpress-local/releases/latest)** and download the `.dmg`:
-
-- `FrontPress.Local_<version>_universal.dmg` — a universal build that runs on both **Apple Silicon** and **Intel** Macs.
-
-Open the DMG and drag **FrontPress Local** into your **Applications** folder.
-
-<img width="1544" height="1024" alt="Screenshot 2026-06-05 at 11 47 29" src="https://github.com/user-attachments/assets/aa5f2eb0-b718-4dfa-892d-f20c633656ec" />
-
-
-## 2. First launch — the "Open Anyway" step
-
-The first time you open the app, macOS will say it *"can't be opened because Apple cannot check it for malware,"* or that it *"was blocked to protect your Mac."*
-
-This is expected. Apple requires a **paid annual Developer certificate** to sign and notarize apps, and this project isn't signed yet. The app is safe; macOS just can't verify the developer.
-
-To open it:
-
-1. Try to open the app once (it gets blocked).
-2. Go to **System Settings → Privacy & Security**.
-3. Scroll to the **Security** section — you'll see *"FrontPress Local was blocked…"* with an **Open Anyway** button. Click it.
-4. Confirm with **Open**.
-
-You only need to do this **once per version**.
-
-<img width="1312" height="1486" alt="Security" src="https://github.com/user-attachments/assets/ede64b57-7f43-4218-907f-131f5e6da974" />
-
-> Prefer the terminal? `xattr -dr com.apple.quarantine "/Applications/FrontPress Local.app"` also clears the block.
-
-Once the project has enough funding/community support to cover an Apple Developer membership, the app will be **notarized** and this step will disappear.
-
-## 3. Updates
-
-The app **checks for updates on launch** and via the menu bar (**FrontPress Local → Check for Updates…**). When a new version is available you'll see an amber **"Update available"** bar at the top of the window — click **Install & restart**.
-
-> Note: because the app isn't notarized yet, an auto‑downloaded update may also need the one‑time **Open Anyway** until signing is in place.
+The app **checks for updates on launch** and via the menu bar (**Help → Check for Updates…**). When a new version is available you'll see an amber **"Update available"** bar at the top of the window — click **Install & restart**.
 
 ## Where things are stored
 
 - **Your sites:** `~/FrontPress Sites/` by default (configurable — see [Sites location & sync](syncing.md)).
-- **App data:** `~/Library/Application Support/FrontPress Local/` — the downloaded PHP runtimes, the site list (`sites.json`), and per‑site server logs.
+- **App data:** `%APPDATA%/FrontPress Local/` on Windows, `~/.local/share/FrontPress Local/` on Linux — the downloaded PHP runtimes, the site list (`sites.json`), and per‑site server logs.
 
 ---
 

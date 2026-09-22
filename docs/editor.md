@@ -11,26 +11,22 @@ Set a favorite code editor once, then open any site's folder in it with a click.
 
 Open **Settings → Editor**.
 
-The dropdown **auto‑detects editors installed** on your Mac, including:
+The dropdown **auto‑detects editors installed** on your machine, including:
 
-- Visual Studio Code
-- Cursor
-- Windsurf
+- Visual Studio Code (`code`)
+- Cursor (`cursor`)
+- VSCodium (`codium`)
 - Zed
-- Sublime Text
-- PhpStorm
-- Nova
-- VSCodium
-- BBEdit
+- Sublime Text (`subl`)
+- PhpStorm / WebStorm
+- Notepad++ (Windows)
+- GNOME Text Editor / Kate / Gedit (Linux)
 
 Pick one and it's saved immediately.
 
 ### Not in the list?
 
-Choose **Other…** and type either:
-
-- an **app name** (used with `open -a`, e.g. `Visual Studio Code`), or
-- a **command** (e.g. `code`, `cursor`, `subl`).
+Choose **Other…** and type a **command** (e.g. `code`, `cursor`, `subl`).
 
 Then click **Save**.
 

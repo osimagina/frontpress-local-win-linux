@@ -1,6 +1,6 @@
 # FrontPress Local
 
-Run [FrontPress Studio](https://github.com/krstivoja/frontpress-studio) sites on your Mac — no WordPress, no database, no Docker. A small native app (Tauri + Rust) that downloads PHP for you, serves each site on its own local port, and gives you one‑click preview and admin login.
+Run [FrontPress Studio](https://github.com/krstivoja/frontpress-studio) sites on Windows and Linux — no WordPress, no database, no Docker. A small native app (Tauri + Rust) that downloads PHP for you, serves each site on its own local port, and gives you one‑click preview and admin login.
 
 Because FrontPress is a **flat‑file** CMS, a "site" is just a folder. That means sites are trivially **portable, syncable (Dropbox / Google Drive), importable, and shareable** — which the app leans into.
 
@@ -14,15 +14,13 @@ Because FrontPress is a **flat‑file** CMS, a "site" is just a folder. That mea
 
 ## Download
 
-Grab the latest `.dmg` from the **[Releases page](https://github.com/krstivoja/frontpress-local/releases/latest)**, drag the app to Applications, and open it. (macOS only for now.)
-
-The first launch needs a one‑time **"Open Anyway"** in System Settings (the app isn't notarized yet) — see [Installation](docs/installation.md).
+Grab the latest installer from the **[Releases page](https://github.com/krstivoja/frontpress-local/releases/latest)**: `.exe` (NSIS) for **Windows 10/11 x64**, `.AppImage` or `.deb` for **Linux x64 (Ubuntu/Debian)** — see [Installation](docs/installation.md).
 
 ---
 
 ## Documentation
 
-- 📦 **[Installation](docs/installation.md)** — download, the first‑run security step, updates
+- 📦 **[Installation](docs/installation.md)** — download, WebView2/WebKitGTK prerequisites, updates
 - 🌐 **[Creating & managing websites](docs/websites.md)** — new site, preview, login, start/stop, **duplicate**, **back up**, **restore**, delete, open in editor
 - 🐘 **[Managing PHP](docs/php.md)** — installing PHP versions, the global default, per‑site versions
 - ✏️ **[Editor](docs/editor.md)** — pick a favorite editor and open a site's folder in it

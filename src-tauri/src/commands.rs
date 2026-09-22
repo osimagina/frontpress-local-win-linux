@@ -353,34 +353,144 @@ fn cleanup_partial(moves: &[(String, PathBuf, PathBuf)]) {
 }
 
 /// Editors detected on this machine (the favorite-editor picker offers these).
+/// Windows + Linux only: probe well-known editor commands on PATH.
+/// Anything else can still be typed manually via "Other…" in Settings.
 #[tauri::command]
 pub fn list_editors() -> Vec<String> {
-    #[cfg(target_os = "macos")]
+    #[cfg(target_os = "windows")]
     {
         let candidates = [
             "Visual Studio Code",
             "Cursor",
-            "Windsurf",
-            "Zed",
             "Sublime Text",
             "PhpStorm",
-            "Nova",
+            "WebStorm",
+            "Notepad++",
             "VSCodium",
-            "BBEdit",
+            "Zed",
         ];
-        let mut roots = vec![PathBuf::from("/Applications")];
-        if let Some(home) = dirs::home_dir() {
-            roots.push(home.join("Applications"));
-        }
         candidates
             .iter()
-            .filter(|name| roots.iter().any(|r| r.join(format!("{name}.app")).exists()))
+            .filter(|name| windows_editor_available(name))
             .map(|s| s.to_string())
             .collect()
     }
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "linux")]
+    {
+        // (display name, binary on PATH)
+        let candidates = [
+            ("Visual Studio Code", "code"),
+            ("Cursor", "cursor"),
+            ("VSCodium", "codium"),
+            ("Sublime Text", "subl"),
+            ("PhpStorm", "phpstorm"),
+            ("WebStorm", "webstorm"),
+            ("Zed", "zed"),
+            ("GNOME Text Editor", "gnome-text-editor"),
+            ("Kate", "kate"),
+            ("Gedit", "gedit"),
+        ];
+        candidates
+            .iter()
+            .filter(|(_, bin)| command_exists(bin))
+            .map(|(name, _)| name.to_string())
+            .collect()
+    }
+    #[cfg(not(any(target_os = "windows", target_os = "linux")))]
     {
         Vec::new()
+    }
+}
+
+/// True when `bin` resolves via PATH (`which` on unix, `where` on Windows).
+fn command_exists(bin: &str) -> bool {
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("where")
+            .arg(bin)
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false)
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        std::process::Command::new("which")
+            .arg(bin)
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false)
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn windows_editor_available(display: &str) -> bool {
+    // Map display names to their CLI / exe probes.
+    let bins: &[&str] = match display {
+        "Visual Studio Code" => &["code", "code.cmd"],
+        "Cursor" => &["cursor", "cursor.cmd"],
+        "Sublime Text" => &["subl", "sublime_text"],
+        "PhpStorm" => &["phpstorm", "phpstorm64"],
+        "WebStorm" => &["webstorm", "webstorm64"],
+        "Notepad++" => &["notepad++", "notepad++.exe"],
+        "VSCodium" => &["codium", "codium.cmd"],
+        "Zed" => &["zed"],
+        _ => &[],
+    };
+    if bins.iter().any(|b| command_exists(b)) {
+        return true;
+    }
+    // Fall back to default install locations under %ProgramFiles%.
+    let pf = std::env::var("ProgramFiles").unwrap_or_default();
+    let pf86 = std::env::var("ProgramFiles(x86)").unwrap_or_default();
+    let paths: &[String] = &match display {
+        "Visual Studio Code" => vec![format!("{pf}\\Microsoft VS Code\\Code.exe")],
+        "Cursor" => vec![format!(
+            "{}\\Cursor\\Cursor.exe",
+            std::env::var("LOCALAPPDATA").unwrap_or_default()
+        )],
+        "Sublime Text" => vec![format!("{pf}\\Sublime Text\\sublime_text.exe")],
+        "PhpStorm" => vec![format!("{pf}\\JetBrains\\PhpStorm\\bin\\phpstorm64.exe")],
+        "Notepad++" => vec![
+            format!("{pf}\\Notepad++\\notepad++.exe"),
+            format!("{pf86}\\Notepad++\\notepad++.exe"),
+        ],
+        _ => vec![],
+    };
+    paths.iter().any(|p| std::path::Path::new(p).is_file())
+}
+
+/// Resolve a display name (as returned by `list_editors`) to the actual
+/// command to spawn. Free-typed values pass through untouched.
+fn editor_command(editor: &str) -> String {
+    #[cfg(target_os = "windows")]
+    {
+        match editor {
+            "Visual Studio Code" => "code".into(),
+            "Cursor" => "cursor".into(),
+            "Sublime Text" => "subl".into(),
+            "PhpStorm" => "phpstorm".into(),
+            "WebStorm" => "webstorm".into(),
+            "Notepad++" => "notepad++".into(),
+            "VSCodium" => "codium".into(),
+            "Zed" => "zed".into(),
+            other => other.to_string(),
+        }
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        match editor {
+            "Visual Studio Code" => "code".into(),
+            "Cursor" => "cursor".into(),
+            "VSCodium" => "codium".into(),
+            "Sublime Text" => "subl".into(),
+            "PhpStorm" => "phpstorm".into(),
+            "WebStorm" => "webstorm".into(),
+            "Zed" => "zed".into(),
+            "GNOME Text Editor" => "gnome-text-editor".into(),
+            "Kate" => "kate".into(),
+            "Gedit" => "gedit".into(),
+            other => other.to_string(),
+        }
     }
 }
 
@@ -412,16 +522,19 @@ pub fn open_in_editor(state: State<'_, AppState>, id: String) -> CmdResult<()> {
     let target = if target.is_dir() { target } else { webroot };
     let target = target.to_string_lossy().to_string();
 
-    #[cfg(target_os = "macos")]
-    std::process::Command::new("open")
-        .args(["-a", &editor, &target])
-        .spawn()
-        .map_err(err)?;
-    #[cfg(not(target_os = "macos"))]
-    std::process::Command::new(&editor)
-        .arg(&target)
-        .spawn()
-        .map_err(err)?;
+    let cmd = editor_command(&editor);
+    // VS Code-likes get a new window so we don't hijack an existing one.
+    let new_window = matches!(
+        cmd.as_str(),
+        "code" | "code.cmd" | "cursor" | "cursor.cmd" | "codium" | "codium.cmd" | "code-insiders"
+    );
+    let mut c = std::process::Command::new(&cmd);
+    if new_window {
+        c.arg("--new-window");
+    }
+    c.arg(&target).spawn().map_err(|e| {
+        format!("Couldn't launch “{editor}” ({cmd}): {e}. Check the command in Settings → Editor.")
+    })?;
     Ok(())
 }
 
@@ -1000,40 +1113,34 @@ pub fn reveal_in_finder(state: State<'_, AppState>, id: String) -> CmdResult<()>
         let store = state.store.lock().map_err(err)?;
         store.site(&id).cloned().ok_or("Unknown site")?.path
     };
-    #[cfg(target_os = "macos")]
-    std::process::Command::new("open")
-        .args(["-R", &path])
-        .spawn()
-        .map_err(err)?;
     #[cfg(target_os = "windows")]
     std::process::Command::new("explorer")
         .arg(format!("/select,{path}"))
         .spawn()
         .map_err(err)?;
-    #[cfg(all(unix, not(target_os = "macos")))]
+    #[cfg(target_os = "linux")]
     std::process::Command::new("xdg-open")
         .arg(&path)
         .spawn()
         .map_err(err)?;
+    #[cfg(not(any(target_os = "windows", target_os = "linux")))]
+    return Err("Revealing files is only supported on Windows and Linux in this build.".into());
     Ok(())
 }
 
 fn open_url(url: &str) -> CmdResult<()> {
-    #[cfg(target_os = "macos")]
-    std::process::Command::new("open")
-        .arg(url)
-        .spawn()
-        .map_err(err)?;
     #[cfg(target_os = "windows")]
     std::process::Command::new("cmd")
         .args(["/C", "start", "", url])
         .spawn()
         .map_err(err)?;
-    #[cfg(all(unix, not(target_os = "macos")))]
+    #[cfg(target_os = "linux")]
     std::process::Command::new("xdg-open")
         .arg(url)
         .spawn()
         .map_err(err)?;
+    #[cfg(not(any(target_os = "windows", target_os = "linux")))]
+    return Err("Opening URLs is only supported on Windows and Linux in this build.".into());
     Ok(())
 }
 

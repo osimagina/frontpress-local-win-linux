@@ -1,9 +1,11 @@
 //! PHP runtime management. Downloads a portable PHP per fully-qualified
 //! version and resolves the latest patch for a given minor.
 //!
-//! - macOS: prebuilt static binaries from static-php.dev (single `php` file).
+//! - Linux: prebuilt static binaries from static-php.dev (single `php` file).
 //! - Windows: official builds from windows.php.net (php.exe + DLLs + ext/),
 //!   with a generated php.ini that enables the extensions FrontPress needs.
+//!
+//! macOS is intentionally NOT supported in this fork (Windows + Linux only).
 
 use crate::{net, paths, util};
 use anyhow::{anyhow, Context, Result};
@@ -11,14 +13,14 @@ use futures_util::StreamExt;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-/// Architecture token shown in the UI / used in macOS filenames.
-#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+/// Architecture token shown in the UI / used in static-php.dev filenames.
+#[cfg(all(target_os = "linux", target_arch = "aarch64"))]
 pub const ARCH: &str = "aarch64";
-#[cfg(all(target_os = "macos", target_arch = "x86_64"))]
+#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
 pub const ARCH: &str = "x86_64";
 #[cfg(target_os = "windows")]
 pub const ARCH: &str = "x64";
-#[cfg(not(any(target_os = "macos", target_os = "windows")))]
+#[cfg(not(any(target_os = "linux", target_os = "windows")))]
 pub const ARCH: &str = "x86_64";
 
 /// Highest patch release for a given "major.minor".
@@ -55,7 +57,7 @@ pub async fn remote_versions() -> Result<Vec<String>> {
     }
     #[cfg(not(target_os = "windows"))]
     {
-        mac::remote_versions().await
+        unix::remote_versions().await
     }
 }
 
@@ -78,7 +80,7 @@ where
     }
     #[cfg(not(target_os = "windows"))]
     {
-        mac::install(version, &dir, &progress).await?;
+        unix::install(version, &dir, &progress).await?;
     }
     Ok(bin)
 }
@@ -108,15 +110,16 @@ where
     Ok(())
 }
 
-// ── macOS: static-php.dev ────────────────────────────────────────────────────
+// ── Linux: static-php.dev ────────────────────────────────────────────────────
+/// Single-file static `php` CLI builds: php-{version}-cli-linux-{ARCH}.tar.gz
 #[cfg(not(target_os = "windows"))]
-mod mac {
+mod unix {
     use super::*;
 
     const BASE: &str = "https://dl.static-php.dev/static-php-cli/common";
 
     fn download_url(version: &str) -> String {
-        format!("{BASE}/php-{version}-cli-macos-{ARCH}.tar.gz")
+        format!("{BASE}/php-{version}-cli-linux-{ARCH}.tar.gz")
     }
 
     pub async fn remote_versions() -> Result<Vec<String>> {
@@ -151,7 +154,6 @@ mod mac {
             .context("join extract task")??;
 
         let _ = std::fs::remove_file(&tmp);
-        dequarantine(&bin);
         Ok(())
     }
 
@@ -179,17 +181,11 @@ mod mac {
         Ok(())
     }
 
-    /// Strip the macOS quarantine xattr so Gatekeeper doesn't block the binary.
-    fn dequarantine(path: &Path) {
-        let _ = std::process::Command::new("xattr")
-            .args(["-d", "com.apple.quarantine"])
-            .arg(path)
-            .output();
-    }
-
     /// Parse a static-php directory listing into the available full versions.
+    /// `arch` is e.g. "x86_64" / "aarch64", matched against
+    /// `-cli-linux-{arch}.tar.gz` entries.
     pub fn parse_listing(body: &str, arch: &str) -> Vec<String> {
-        let suffix = format!("-cli-macos-{arch}.tar.gz");
+        let suffix = format!("-cli-linux-{arch}.tar.gz");
         let mut out = Vec::new();
         for chunk in body.split("php-").skip(1) {
             if let Some(idx) = chunk.find(&suffix) {
@@ -325,12 +321,12 @@ mod tests {
     #[test]
     fn parse_listing_extracts_versions() {
         let html = r#"
-            <a href="/static-php-cli/common/php-8.1.34-cli-macos-aarch64.tar.gz">x</a>
-            <a href="/static-php-cli/common/php-8.3.9-cli-macos-aarch64.tar.gz">x</a>
-            <a href="/static-php-cli/common/php-8.2.21-cli-macos-x86_64.tar.gz">x</a>
-            <a href="/static-php-cli/common/php-8.4.1-cli-macos-aarch64.tar.gz">x</a>
+            <a href="/static-php-cli/common/php-8.1.34-cli-linux-aarch64.tar.gz">x</a>
+            <a href="/static-php-cli/common/php-8.3.9-cli-linux-aarch64.tar.gz">x</a>
+            <a href="/static-php-cli/common/php-8.2.21-cli-linux-x86_64.tar.gz">x</a>
+            <a href="/static-php-cli/common/php-8.4.1-cli-linux-aarch64.tar.gz">x</a>
         "#;
-        let v = mac::parse_listing(html, "aarch64");
+        let v = unix::parse_listing(html, "aarch64");
         assert_eq!(v.first().map(String::as_str), Some("8.4.1"));
         assert!(v.contains(&"8.1.34".to_string()));
         assert!(!v.contains(&"8.2.21".to_string()));

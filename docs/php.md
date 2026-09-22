@@ -9,8 +9,9 @@ Open **Settings → PHP Manager** to manage runtimes.
 
 ## How it works
 
-- On macOS, runtimes come from **[static‑php.dev](https://dl.static-php.dev/)** — a single `php` binary per version, with the extensions FrontPress needs already compiled in (mbstring, gd, curl, sqlite3, openssl, dom, fileinfo, zip, …).
-- Each version is stored under `~/Library/Application Support/FrontPress Local/php/<version>/`.
+- On Linux, runtimes come from **[static‑php.dev](https://dl.static-php.dev/)** — a single `php` binary per version, with the extensions FrontPress needs already compiled in (mbstring, gd, curl, sqlite3, openssl, dom, fileinfo, zip, …).
+- On Windows, runtimes come from **[windows.php.net](https://windows.php.net/)** (NTS x64 zips) with a generated `php.ini` enabling the same extensions.
+- Each version is stored under the app-data dir (`~/.local/share/FrontPress Local/php/<version>/` on Linux, `%APPDATA%/FrontPress Local/php/<version>/` on Windows).
 - **Minimum supported:** PHP **8.1** (FrontPress Studio's requirement).
 
 ## The PHP Manager tab
@@ -29,7 +30,7 @@ You'll see a row per PHP minor (8.1, 8.2, 8.3, 8.4, …):
 
 ## Architecture
 
-The PHP Manager shows your Mac's architecture (`aarch64` for Apple Silicon, `x86_64` for Intel) and only offers builds for it.
+The PHP Manager shows your machine's architecture (`x86_64`, `aarch64` on Linux, `x64` on Windows) and only offers builds for it.
 
 ---
 

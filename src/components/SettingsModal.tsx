@@ -220,7 +220,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           Used by “Open in editor” on each site.
           {editor ? ` Currently: ${editor}.` : ""}
           {editors.length === 0
-            ? " No editors detected — type an app name or command."
+            ? " No editors detected — type a command (e.g. code, subl)."
             : ""}
         </small>
       </div>
@@ -229,7 +229,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
       <div className="field" hidden={tab !== "php"}>
         <span>PHP runtimes</span>
         <small className="muted">
-          Static PHP builds for {catalog?.arch ?? "your Mac"}. Minimum:{" "}
+          Static PHP builds for {catalog?.arch ?? "your machine"}. Minimum:{" "}
           PHP {catalog?.minPhp ?? "8.1"}. The default is used for new sites
           unless you pick a per-site version.
         </small>

@@ -44,9 +44,8 @@ pub struct Settings {
     /// Minimum PHP FrontPress accepts.
     #[serde(default = "default_min_php")]
     pub min_php: String,
-    /// Favorite editor to open site folders with. On macOS this is the app
-    /// name used with `open -a` (e.g. "Visual Studio Code"); elsewhere it's
-    /// the editor command. Empty = none chosen.
+    /// Favorite editor to open site folders with: the editor command
+    /// (e.g. "code", "cursor", "subl"). Empty = none chosen.
     #[serde(default)]
     pub editor: String,
     /// Folder where site directories live. Empty = the default
