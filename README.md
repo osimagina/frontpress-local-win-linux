@@ -14,7 +14,12 @@ Because FrontPress is a **flat‑file** CMS, a "site" is just a folder. That mea
 
 ## Download
 
-Grab the latest installer from the **[Releases page](https://github.com/krstivoja/frontpress-local/releases/latest)**: `.exe` (NSIS) for **Windows 10/11 x64**, `.AppImage` or `.deb` for **Linux x64 (Ubuntu/Debian)** — see [Installation](docs/installation.md).
+| OS | Installer |
+|----|-----------|
+| Windows 10/11 x64 | [FrontPress.Local_1.3.0_x64-setup.exe](https://github.com/osimagina/frontpress-local-win-linux/releases/download/v1.3.0-linux-rc3/FrontPress.Local_1.3.0_x64-setup.exe) (NSIS) |
+| Linux x64 (Ubuntu/Debian) | [FrontPress.Local_1.3.0_amd64.deb](https://github.com/osimagina/frontpress-local-win-linux/releases/download/v1.3.0-linux-rc3/FrontPress.Local_1.3.0_amd64.deb) or [FrontPress.Local_1.3.0_amd64.AppImage](https://github.com/osimagina/frontpress-local-win-linux/releases/download/v1.3.0-linux-rc3/FrontPress.Local_1.3.0_amd64.AppImage) |
+
+All versions on the [Releases page](https://github.com/osimagina/frontpress-local-win-linux/releases). Setup details in [Installation](docs/installation.md).
 
 ---
 
