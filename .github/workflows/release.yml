@@ -18,6 +18,10 @@ on:
   push:
     tags:
       - "v*"
+  # Manual fallback: `gh workflow run release.yml --ref <tag>`. Runs against
+  # the chosen tag ref, so GITHUB_REF stays `refs/tags/<tag>` and the
+  # tagName/version below keep working unchanged.
+  workflow_dispatch: {}
 
 jobs:
   release:

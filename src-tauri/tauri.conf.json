@@ -51,9 +51,9 @@
   "plugins": {
     "updater": {
       "endpoints": [
-        "https://github.com/krstivoja/frontpress-local/releases/latest/download/latest.json"
+        "https://github.com/osimagina/frontpress-local-win-linux/releases/latest/download/latest.json"
       ],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDNBMjYzREY0N0ZBNEZCNgpSV1MyVC9wSDMyT2lBNkl3ci9kQ2VXUVQxM0tVSkNzZzIzMlZVemlMRFI2c2l1bFNDN2FjN0JLdQo="
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEJCRDBGNkZDNUI0RTk4MUQKUldRZG1FNWIvUGJRdTR1SERhSE9EMmRKNnp3bm1mb002ek5CVGdoZUtxSTF1RzJXY0pzWVh0UWYK"
     }
   }
 }
